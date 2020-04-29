@@ -22,8 +22,10 @@
 <meta property="og:image" content="https://pic.downk.cc/item/5ea7d6c2c2a9a83be5b0ea9c.jpg">
 <meta property="og:image" content="https://pic.downk.cc/item/5ea8191bc2a9a83be5f9423c.jpg">
 <meta property="og:image" content="https://pic.downk.cc/item/5ea84a71c2a9a83be53587d6.jpg">
+<meta property="og:image" content="https://pic.downk.cc/item/5ea9104ec2a9a83be5f114f3.jpg">
+<meta property="og:image" content="https://pic.downk.cc/item/5ea93854c2a9a83be51c03eb.jpg">
 <meta property="article:published_time" content="2020-04-27T13:30:07.000Z">
-<meta property="article:modified_time" content="2020-04-28T15:48:18.878Z">
+<meta property="article:modified_time" content="2020-04-29T09:42:47.532Z">
 <meta property="article:author" content="徐子烊">
 <meta property="article:tag" content="分布式">
 <meta property="article:tag" content="Raft">
@@ -184,7 +186,7 @@
 </ol>
 <a id="more"></a>
 <h3 id="复制状态机"><a href="#复制状态机" class="headerlink" title="复制状态机"></a>复制状态机</h3><p>一致性算法起源于复制状态机的概念，通常使用复制日志实现。如图一所示，每一个服务器存储包括一系列指令的日志，每个日志包含相同顺序的相同命令。因为命令是确定性的，所以每个状态机的输出序列都是相同的。</p>
-<p><img src="https://pic.downk.cc/item/5ea7099bc2a9a83be5ef9e20.png" alt=""></p>
+<p><img src="https://pic.downk.cc/item/5ea7099bc2a9a83be5ef9e20.png" style="zoom:50%;" /></p>
 <p>一致性算法就是用于保持日志的一致性的。一致性模块接受客户端的命令，与其他一致性模块交互，确保它们最终都以相同顺序包含相同的命令。一旦日志被正确复制，状态机就可以执行对应的命令，给客户端返回结果。最终，一组服务器表现为单一的、高可用的状态机。</p>
 <p>一致性算法通常有以下性质：</p>
 <ol>
@@ -194,7 +196,7 @@
 <li>通常情况下，一条命令再大多数节点相应RPC时即可完成，小部分慢节点不会拖累整个系统的性能</li>
 </ol>
 <h3 id="5-Raft一致性算法"><a href="#5-Raft一致性算法" class="headerlink" title="5. Raft一致性算法"></a>5. Raft一致性算法</h3><p><img src="https://pic.downk.cc/item/5ea7ceb3c2a9a83be5a94a02.jpg" alt=""></p>
-<p><img src="https://pic.downk.cc/item/5ea7cf45c2a9a83be5a9c509.png" alt=""></p>
+<p><img src="https://pic.downk.cc/item/5ea7cf45c2a9a83be5a9c509.png" alt="d" style="zoom:40%;" /></p>
 <p>图二总结了Raft算法，图三是Raft算法的一些关键特性。Raft首先通过选举leader来实现一致性，leader全权负责日志的复制。leader接受客户端的请求，复制日志给其他服务器并告诉它们何时可以应用这些日志，这简化了日志复制的管理。leader可能会fail，此时需要选举新的leader。</p>
 <p>用选举leader的方法，Raft将一致性问题分为几个小问题：</p>
 <ol>
@@ -202,25 +204,48 @@
 <li>日志复制：leader接受客户端的请求，复制日志给集群中其他成员，并使其强制认同leader的日志</li>
 <li>安全性：如果任何服务器已将特定的日志条目应用于其状态机，则其他服务器都不能对同一索引位置的日志应用不同的命令。</li>
 </ol>
-<h4 id="5-1-Raft基础"><a href="#5-1-Raft基础" class="headerlink" title="5.1 Raft基础"></a>5.1 Raft基础</h4><p>Raft集群包含一些服务器，比如5台，可以容忍2台的故障。在任意时刻，每一台机器都在三个状态之一：leader、follower、candidate。通常情况下只有一个leader，其他的全是follower。follower是被动的，他们不发起自己的请求，只回应leader和candidate的请求。leader处理客户端的请求（如果客户端联系follower，follower会转发给leader）。candidate是在领导人选举时使用的。图四描述了状态间的变化<img src="https://pic.downk.cc/item/5ea7d5cac2a9a83be5b00ae3.png" alt=""></p>
-<p>Raft把时间分为任意长度的任期，任期用连续的数字表示。如图五所示。以领导人选举开始，如果某个candidate胜出，则它在当前任期中作为leader。在某些情况下票数会被平分，该任期也就没有leader，很快会开启新一轮选举。Raft协议确保一个任期只有一个leader。<img src="https://pic.downk.cc/item/5ea7d6c2c2a9a83be5b0ea9c.jpg" alt=""></p>
+<h4 id="5-1-Raft基础"><a href="#5-1-Raft基础" class="headerlink" title="5.1 Raft基础"></a>5.1 Raft基础</h4><p>Raft集群包含一些服务器，比如5台，可以容忍2台的故障。在任意时刻，每一台机器都在三个状态之一：leader、follower、candidate。通常情况下只有一个leader，其他的全是follower。follower是被动的，他们不发起自己的请求，只回应leader和candidate的请求。leader处理客户端的请求（如果客户端联系follower，follower会转发给leader）。candidate是在领导人选举时使用的。图四描述了状态间的变化</p>
+<p><img src="https://pic.downk.cc/item/5ea7d5cac2a9a83be5b00ae3.png" style="zoom:50%;" /></p>
+<p>Raft把时间分为任意长度的任期，任期用连续的数字表示。如图五所示。以领导人选举开始，如果某个candidate胜出，则它在当前任期中作为leader。在某些情况下票数会被平分，该任期也就没有leader，很快会开启新一轮选举。Raft协议确保一个任期只有一个leader。</p>
+<p><img src="https://pic.downk.cc/item/5ea7d6c2c2a9a83be5b0ea9c.jpg" style="zoom:50%;" /></p>
 <p>不同的服务器可能会在不同的时间观察到任期的转换，某些情况下在整个任期内都不会观察到选举。任期作为逻辑时钟，使服务器可以检测过期的信息。每个服务器维护当前任期的值，随着时间单调增长。任期通过服务器之间的交互更新。如果一个服务器的任期小于其他的，它把当前任期更新为更大的值。如果一个candidate或者leader发现它的任期以及过期了，则立即转为follower模式。如果一个服务器接收到了过期term的请求，则拒绝之。</p>
 <h4 id="5-2-领导人选举"><a href="#5-2-领导人选举" class="headerlink" title="5.2 领导人选举"></a>5.2 领导人选举</h4><p>Raft使用心跳机制来触发领导人选举。server启动时为follower状态，并且在收到合法的RPC时保持follower状态。Leader定期的发送心跳包来维持它的地位。如果follower在一定时期内没有收到消息，则开启一轮选举。开启一轮选举时，follower增加它的当前任期，转为candidate模式，给自己投票，然后并行发送请求投票RPC给其他服务器。保持candidate模式直到三件事情之一发生：(a)选举获胜、(b)另一个服务器确立自己为领导者、(c)没有获胜者，超时。</p>
 <p>当candidate获得大多数的投票时，它获的选举胜利。每个服务器依据先到先得的原则，只给一个candidate投票。majority规则确保最多只有一个candidate可以获胜。candidate获胜后变为leader，给其他服务器发送心跳，确立自己为leader，防止新的选举。等待投票时，candidate可能从声明自己为leader的服务器收到AppendEntriesRPC，如果该leader的任期至少等于candidate的任期，candidate认为该leader是合法的，并且转为follower状态。如果小于，则拒绝该RPC，保持candidate状态。</p>
 <p>第三种情况是candidate既没有赢，也没有输。如果许多follower同时转为candidate状态，票数可能会被平分，没有candidate可以获得大多数票。Raft使用随机选举超时时间来降低平分票数的概率，并快速解决。选举超时时间被随机设置为150ms-300ms之间。绝大多数情况下只有一个服务器会先超时，发起选举并在其他服务器超时前获胜。解决平分票数也用了此机制。服务器转为candidate模式时重置超时时间，降低了下一轮选举时平分的概率。</p>
-<h4 id="5-3-日志复制"><a href="#5-3-日志复制" class="headerlink" title="5.3 日志复制"></a>5.3 日志复制</h4><p>领导人选举完成后，就开始处理客户端的请求。每一条客户端的请求包含一条复制状态机要执行的命令。leader以新条目追加此命令到日志中，然后并行发送AppendEntries RPC至其他服务器。当这个条目被成功复制（后文描述），leader应用此命令至状态机，返回结果给客户端。如果follower崩溃或运行缓慢，或者网络发生丢包，leader会不断的发AppendEntries RPC，直到所有follower都保存了所有的日志。<img src="https://pic.downk.cc/item/5ea8191bc2a9a83be5f9423c.jpg" alt=""></p>
+<h4 id="5-3-日志复制"><a href="#5-3-日志复制" class="headerlink" title="5.3 日志复制"></a>5.3 日志复制</h4><p>领导人选举完成后，就开始处理客户端的请求。每一条客户端的请求包含一条复制状态机要执行的命令。leader以新条目追加此命令到日志中，然后并行发送AppendEntries RPC至其他服务器。当这个条目被成功复制（后文描述），leader应用此命令至状态机，返回结果给客户端。如果follower崩溃或运行缓慢，或者网络发生丢包，leader会不断的发AppendEntries RPC，直到所有follower都保存了所有的日志。</p>
+<p><img src="https://pic.downk.cc/item/5ea8191bc2a9a83be5f9423c.jpg" style="zoom:50%;" /></p>
 <p>Log的组织如图六。每一个log条目保存了一个命令，以及对应的任期。任期用于检测不一致性以及满足图三的各种性质。Leader决定何时应用log至状态机是安全的，当leader创建日志条目，并且复制至大多数服务器时被commited。Leader维护已commited的日志的最大索引，在将来的AppendEntries RPCs中发送。其他服务器发现一个log条目commited时，它也应用该条目至状态机。Raft维持以下性质，共同组成了图三中的Log Matching性质</p>
 <ol>
-<li><p>如果两个logs中的不同条目有相同的任期及索引，那么它们保存相同的命令</p>
-</li>
-<li><p>如果两个logs中的不同条目有相同的任期及索引，那么所有之前的条目都是相同的</p>
-</li>
+<li>如果两个logs中的不同条目有相同的任期及索引，那么它们保存相同的命令</li>
+<li>如果两个logs中的不同条目有相同的任期及索引，那么所有之前的条目都是相同的</li>
 </ol>
 <p>第一个性质是由于一个leader在一个任期内，同一个索引位置上最多创建一个日志条目，并且日志条目永不改变位置。第二个性质是由于AppendEntries的验证。当发送AppendEntries RPC时，leader会同时发送新条目之前一个位置的任期和索引，如果follower没有找到对应的条目，则拒绝该新条目。启动时日志满足Log Matching性质，当日志扩展时维持此性质。所以，当AppendEntries成功时，leader知道，直到新的日志条目，follower的日志是与他相同的。</p>
-<p>通常情况下，AppendEntries一致性检查不会失败。但是leader崩溃时会导致日志的不一致，这些不一致会随着一系列leader和follower的崩溃加剧。图七展示了follower与leader可能不一致的情况。follower可能会缺少条目，也可能会多，或者又多又少。日志缺失或多余可能会跨越多个任期。<img src="https://pic.downk.cc/item/5ea84a71c2a9a83be53587d6.jpg" alt=""></p>
+<p>通常情况下，AppendEntries一致性检查不会失败。但是leader崩溃时会导致日志的不一致，这些不一致会随着一系列leader和follower的崩溃加剧。图七展示了follower与leader可能不一致的情况。follower可能会缺少条目，也可能会多，或者又多又少。日志缺失或多余可能会跨越多个任期。</p>
+<p><img src="https://pic.downk.cc/item/5ea84a71c2a9a83be53587d6.jpg" style="zoom:50%;" /></p>
 <p>Raft使follower强制接受leader的log来维持一致性。这代表follower中冲突的条目会被leader覆盖。5.4节将证明添加一些限制后，这是安全的。</p>
 <p>为了使follower的日志与leader一致，leader必须找到log出现分歧的条目，删除之后的所有条目，并且发送自己的条目。leader为每一个follower维护一个<code>nextIndex</code>变量，指向下一个leader发向follower的日志条目的位置。当leader掌权时，<code>nextIndex</code>被初始化为最后一个log条目的下一个位置（图七中为11）。AppendEntries RPC失败时，<code>nextIndex</code>减一，最终会到达一个leader与follower一致的位置。然后AppendEntries会成功，follower中冲突条目会被移除，leader中的日志被追加（如果有的话），然后follower的日志就与leader一致了。</p>
-<h4 id="5-4-安全性"><a href="#5-4-安全性" class="headerlink" title="5.4 安全性"></a>5.4 安全性</h4><h4 id="5-5-Follower-和-candidate-崩溃"><a href="#5-5-Follower-和-candidate-崩溃" class="headerlink" title="5.5 Follower 和 candidate 崩溃"></a>5.5 Follower 和 candidate 崩溃</h4><h4 id="5-6-时间和可用性"><a href="#5-6-时间和可用性" class="headerlink" title="5.6 时间和可用性"></a>5.6 时间和可用性</h4><h3 id="6-集群成员变化"><a href="#6-集群成员变化" class="headerlink" title="6. 集群成员变化"></a>6. 集群成员变化</h3>
+<h4 id="5-4-安全性"><a href="#5-4-安全性" class="headerlink" title="5.4 安全性"></a>5.4 安全性</h4><p>这一章给leader的选举添加了一些限制，保证了任意任期的leader都包含之前任期的所有commited的日志（图三中的Leader Completeness性质）</p>
+<h5 id="5-4-1-选举限制"><a href="#5-4-1-选举限制" class="headerlink" title="5.4.1 选举限制"></a>5.4.1 选举限制</h5><p>Raft使用投票来防止一个candidate获胜，除非他拥有所有的commited的日志。为了获胜，candidate必须联系多数的节点，意味着每一个已经提交了的日志必然在其中至少一个节点上。如果candidate的日志与其他节点相比至少是up-to-date的，则他拥有所有commited的日志。RequestVote RPC有如下的限制：RPC包含了candidate的日志信息，如果投票者的日志更up-to-date，则拒绝为其投票。Raft根据日志的最后一个条目的索引和任期来判断谁更up-to-date，任期大的更up-to-date，如果任期相同，索引大的更up-to-date。</p>
+<h5 id="5-4-2-commit旧任期的日志条目"><a href="#5-4-2-commit旧任期的日志条目" class="headerlink" title="5.4.2 commit旧任期的日志条目"></a>5.4.2 commit旧任期的日志条目</h5><p>如5.3节所述，当日志条目被复制到多数节点时，leader知道该条目是commited的。如果leader在commit条目之前崩溃了，则之后的leader会尝试复制该条目。但是，leader不能立即得出以下结论：一旦上一个任期的条目存储在大多数服务器上，则他是commited的。图八展示了一种情况，一个旧的条目已经被多数节点存储，但仍然被未来的leader覆盖了。</p>
+<p><img src="https://pic.downk.cc/item/5ea9104ec2a9a83be5f114f3.jpg" style="zoom:50%;" /></p>
+<p>上图，S1先被选为leader，复制了日志2至S2，然后崩溃，S5被选为leader。图(c)中，S5崩溃，S1又被选为leader，复制日志2至S3，此时日志2被复制至多数节点，但未提交。图(d)中，如果S1崩溃，S5被选为leader，那S5会用日志3去覆盖其他日志。然而，如果S1提交了日志4，如图(e)，那么日志4之前的日志会被自动提交</p>
+<p>为了防止图八中的覆盖情况，Raft永远不会通过计算副本数的方式commit一个旧任期的条目。只有当前任期的条目可以通过计算副本数的方式commit。根据Log Matching性质，如果当前条目提交成功了，那么之前的所有条目都提交成功了。</p>
+<h5 id="5-4-3-安全性证明"><a href="#5-4-3-安全性证明" class="headerlink" title="5.4.3 安全性证明"></a>5.4.3 安全性证明</h5><p>有了完整的Raft算法，现在可以更精确的证明Leader Completeness性质。先假设Leader Completeness性质不成立，然后推出矛盾。假设$Leader_T$在T任期提交了日志条目，但是这个条目在某个Leader中未出现，假设存在最小任期U使得$Leader_U$不包含该条目，满足$U&gt;T$。</p>
+<ol>
+<li>$Leader_U$选举时该条目必然不在它的日志中</li>
+<li>$Leader_T$复制了该条目给多数服务器，$Leader_U$获得了多数的选票，因此至少有一个服务器既接受了该条目，也给U投票，如图九<br><img src="https://pic.downk.cc/item/5ea93854c2a9a83be51c03eb.jpg" style="zoom:50%;" /></li>
+<li>该投票者必然在给U投票前接受了$Leader_T$发来的日志条目，否则他会拒绝AppendEntries（因为他的任期大于T的任期）</li>
+<li>投票者在给U投票前一直保存该条目，因为每个T至U的中间leader都持有该条目，leader从不删除条目，follower只在和leader冲突时删除条目</li>
+<li>投票者给U投票，所以$Leader_U$至少up-to-date于该投票者，导致了至少二者之一的矛盾</li>
+<li>第一种情况，投票者与U任期相同，那么$Leader_U$的日志长度至少与投票者相同，所以投票者的每一个条目它都有。这导致矛盾，因为投票者持有该提交的条目而$Leader_U$不应该有。</li>
+<li>否则$Leader_U$的任期必然大于投票者的，而且大于T（因为投票者的最后一个条目的任期至少是T）。$Leader_U$之前的leader必然持有提交条目。由于Log Matching性质，$Leader_U$必然也含有提交条目，这也是i一个矛盾</li>
+<li>所以，所有任期大于T的leader必然持有所有任期T内提交的条目</li>
+<li>Log Matching性质保证未来的leader同样持有间接提交的条目，如图八(d)中的位置2</li>
+</ol>
+<p>给出了Leader Completeness性质，我们可以证明图三中的State Machine Safety性质，也就是如果一个服务器应用了一个位置上的日志条目，其他服务器不会在同样的位置上应用一个不同的日志。当一个服务器应用日志条目到其状态机时，该提交的条目前的日志必然与leader相同。Log Completeness性质保证未来的leader都会保存相同的条目，所以服务器在给定位置上会应用相同的值，所以State Machine Safety性质成立</p>
+<p>最后，Raft要求所有服务器以相同顺序应用条目，结合State Machine Safety性质，这意味着所有的服务器会以相同的顺序应用相同的条目至状态机。</p>
+<p>//TODO 成员变化、日志压缩</p>
+
       
 
       
@@ -347,7 +372,7 @@
                 </span>
                 <span class="tooltip-content">
                     <div class="toc-article">
-                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#复制状态机"><span class="toc-number">1.</span> <span class="toc-text">复制状态机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Raft一致性算法"><span class="toc-number">2.</span> <span class="toc-text">5. Raft一致性算法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-1-Raft基础"><span class="toc-number">2.1.</span> <span class="toc-text">5.1 Raft基础</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-领导人选举"><span class="toc-number">2.2.</span> <span class="toc-text">5.2 领导人选举</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-日志复制"><span class="toc-number">2.3.</span> <span class="toc-text">5.3 日志复制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-4-安全性"><span class="toc-number">2.4.</span> <span class="toc-text">5.4 安全性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-5-Follower-和-candidate-崩溃"><span class="toc-number">2.5.</span> <span class="toc-text">5.5 Follower 和 candidate 崩溃</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-6-时间和可用性"><span class="toc-number">2.6.</span> <span class="toc-text">5.6 时间和可用性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-集群成员变化"><span class="toc-number">3.</span> <span class="toc-text">6. 集群成员变化</span></a></li></ol>
+                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#复制状态机"><span class="toc-number">1.</span> <span class="toc-text">复制状态机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Raft一致性算法"><span class="toc-number">2.</span> <span class="toc-text">5. Raft一致性算法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-1-Raft基础"><span class="toc-number">2.1.</span> <span class="toc-text">5.1 Raft基础</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-领导人选举"><span class="toc-number">2.2.</span> <span class="toc-text">5.2 领导人选举</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-日志复制"><span class="toc-number">2.3.</span> <span class="toc-text">5.3 日志复制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-4-安全性"><span class="toc-number">2.4.</span> <span class="toc-text">5.4 安全性</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#5-4-1-选举限制"><span class="toc-number">2.4.1.</span> <span class="toc-text">5.4.1 选举限制</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-4-2-commit旧任期的日志条目"><span class="toc-number">2.4.2.</span> <span class="toc-text">5.4.2 commit旧任期的日志条目</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-4-3-安全性证明"><span class="toc-number">2.4.3.</span> <span class="toc-text">5.4.3 安全性证明</span></a></li></ol></li></ol></li></ol>
                     </div>
                 </span>
             </div>
@@ -537,11 +562,11 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">二叉树</a>
+                <a href="javascript:void(0)" class="js-tag color4">子序列</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">子序列</a>
+                <a href="javascript:void(0)" class="js-tag color4">二叉树</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -557,11 +582,11 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">树状数组</a>
+                <a href="javascript:void(0)" class="js-tag color4">质因数</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">质因数</a>
+                <a href="javascript:void(0)" class="js-tag color5">树状数组</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -581,11 +606,11 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">bfs</a>
+                <a href="javascript:void(0)" class="js-tag color3">哈希</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">哈希</a>
+                <a href="javascript:void(0)" class="js-tag color4">bfs</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -609,14 +634,6 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java并发</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">实习</a>
               </li>
              
@@ -625,19 +642,15 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">caffe</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">Leetcode</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
+                <a href="javascript:void(0)" class="js-tag color2">Java并发</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Raft</a>
+                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -645,7 +658,23 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">mapreduce</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">caffe</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">epoll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Raft</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -654,10 +683,6 @@ MathJax.Hub.Queue(function() {
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">密码学</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">epoll</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -673,15 +698,15 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">抽象工厂</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">工厂模式</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">建造者模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">抽象工厂</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -693,15 +718,15 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">策略模式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">组合模式</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">适配器模式</a>
+                <a href="javascript:void(0)" class="js-tag color5">策略模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">装饰器模式</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -709,7 +734,7 @@ MathJax.Hub.Queue(function() {
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">装饰器模式</a>
+                <a href="javascript:void(0)" class="js-tag color1">适配器模式</a>
               </li>
             
             <div class="clearfix"></div>
